@@ -6,29 +6,22 @@ const dbUser = process.env.MONGODB_USERNAME;
 const dbPassword = process.env.MONGODB_PASSWORD;
 const dbName = process.env.MONGODB_DB_NAME;
 
-// 🔥 Encode password (important for Atlas)
-const encodedPassword = encodeURIComponent(dbPassword);
-
-// ✅ Include DB name in URI
-const uri = `${connectionProtocol}://${dbUser}:${encodedPassword}@${clusterAddress}/${dbName}?retryWrites=true&w=majority`;
-
+const uri = `${connectionProtocol}://${dbUser}:${dbPassword}@${clusterAddress}/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri);
 
-let database;
-
-console.log('🔄 Trying to connect to DB...');
+console.log('Trying to connect to db');
 
 try {
   await client.connect();
   await client.db(dbName).command({ ping: 1 });
-  console.log('✅ Connected successfully to server');
-
-  database = client.db(dbName);
-
+  console.log('Connected successfully to server');
 } catch (error) {
-  console.log('❌ Connection failed:');
-  console.log(error);
+  console.log('Connection failed.');
+  await client.close();
+  console.log('Connection closed.');
   process.exit(1);
 }
+
+const database = client.db(dbName);
 
 export default database;
